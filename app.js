@@ -18,43 +18,7 @@ const defaultData = {
   messages: []
 };
 
-function isRecord(value) {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function loadDB() {
-  let savedData;
-  try {
-    const stored = localStorage.getItem("trjs_portal_v2");
-    if (stored === null) return JSON.parse(JSON.stringify(defaultData));
-    savedData = JSON.parse(stored);
-  } catch (error) {
-    console.error("Could not load saved portal data; using default data.", error);
-    return JSON.parse(JSON.stringify(defaultData));
-  }
-
-  if (!isRecord(savedData)) {
-    console.error("Saved portal data has an invalid format; using default data.");
-    return JSON.parse(JSON.stringify(defaultData));
-  }
-
-  const data = Object.assign(JSON.parse(JSON.stringify(defaultData)), savedData);
-  for (const key of ["progress", "activities", "enrolments", "payments", "students", "staff", "messages"]) {
-    data[key] = Array.isArray(data[key]) ? data[key].filter(isRecord) : JSON.parse(JSON.stringify(defaultData[key]));
-  }
-
-  data.students = data.students.map(student => ({
-    ...student,
-    week: { Mon: "Present", Tue: "Present", Wed: "Present", Thu: "Present", Fri: "Present", ...(isRecord(student.week) ? student.week : {}) },
-    attendanceHistory: Array.isArray(student.attendanceHistory) ? student.attendanceHistory : [],
-    behavior: student.behavior || "Good conduct.",
-    performance: Array.isArray(student.performance) ? student.performance : [],
-    exams: Array.isArray(student.exams) ? student.exams : []
-  }));
-  return data;
-}
-
-let db = loadDB();
+let db = JSON.parse(localStorage.getItem("trjs_portal_v2")) || defaultData;
 function saveDB() { localStorage.setItem("trjs_portal_v2", JSON.stringify(db)); }
 
 function switchView(id, btn) {
