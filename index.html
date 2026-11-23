@@ -1,0 +1,207 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Remnant Junior School | Portal</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div id="schoolCrest" class="crest" title="Turn on Admin Edit Mode to change logo" onclick="if(adminEditMode) document.getElementById('logoUploadInput').click()" style="overflow:hidden;cursor:pointer;">TRJS</div><input type="file" id="logoUploadInput" accept="image/*" style="display:none;" onchange="uploadSchoolLogo(event)" />
+      <div><strong>THE REMNANT JUNIOR SCHOOL</strong><br><small>Christian Education • ECD A, ECD B & Primary School • Domboshava</small></div>
+    </div>
+    <nav class="nav-tabs">
+      <button class="nav-btn active" onclick="switchView('home', this)">Public Website</button>
+      <button class="nav-btn" onclick="switchView('enrolment', this)">Enrolment Portal</button>
+      <button class="nav-btn" onclick="switchView('fees', this)">Fees & Uniforms</button>
+      <button class="nav-btn" onclick="switchView('parent', this)">Student Progress</button>
+      <button class="nav-btn" onclick="switchView('register', this)">Staff & Student Register</button>
+    </nav>
+    <button id="editModeBtn" class="edit-toggle" onclick="toggleAdminEdit()">Admin Front-End Edit: OFF</button>
+  </header>
+
+  <main class="container">
+    <section id="view-home" class="view active">
+      <div class="hero">
+        <div>
+          <h2>Welcome to The Remnant Junior School</h2>
+          <p style="margin:0.6rem 0 1rem;">Heritage-Based Curriculum (HBC) excellence for ECD A, ECD B, and Junior Primary learners.</p>
+          <button class="btn btn-gold" onclick="switchView('enrolment', document.querySelectorAll('.nav-btn')[1])">Apply Now</button>
+        </div>
+        <div class="card" style="color:var(--text);">
+          <h3>School Policies</h3>
+          <p style="font-size:0.84rem;"><strong>Wednesdays:</strong> Strictly Adventist/Adventurer uniform.<br><strong>Diet:</strong> Strictly no pork products & no Mazoe crush.<br><strong>Location:</strong> <span id="schoolAddress" contenteditable="false">Domboshava</span></p>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div id="passRateDisplay" class="stat-value" onblur="db.passRate=this.innerText;saveDB();">98.5%</div><div>Overall Pass Rate (Click in Edit Mode)</div></div>
+        <div class="stat-card"><div class="stat-value">$270 / term</div><div>ECD A, ECD B & Primary School School Fees</div></div>
+        <div class="stat-card"><div class="stat-value">$80 / $20</div><div>Once-Off Registration & Desk Fees</div></div>
+      </div>
+
+      <div class="card" style="margin-bottom:1.25rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h3>School Progressive Information</h3>
+          <button class="btn btn-sm edit-only" style="display:none;" onclick="addNewCard('progress')">+ Add Progress Item</button>
+        </div>
+        <div id="progressGrid" class="grid-3" style="margin-top:0.85rem;"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h3>School Activities</h3>
+          <button class="btn btn-sm edit-only" style="display:none;" onclick="addNewCard('activities')">+ Add Activity</button>
+        </div>
+        <div id="activitiesGrid" class="grid-3" style="margin-top:0.85rem;"></div>
+      </div>
+    </section>
+
+    <section id="view-enrolment" class="view">
+      <div class="grid-2">
+        <div class="card">
+          <h3>Student Enrolment Application</h3>
+          <form onsubmit="submitEnrolment(event)">
+            <div class="form-group"><label>Child Full Name</label><input id="enrolChild" required /></div>
+            <div class="form-group"><label>Class</label><select id="enrolClass"><option>ECD A</option><option>ECD B</option><option>Primary School (Grades 1-7)</option></select></div>
+            <div class="form-group"><label>Parent Name</label><input id="enrolParent" required /></div>
+            <div class="form-group"><label>Parent Phone</label><input id="enrolPhone" required /></div>
+            <button type="submit" class="btn">Submit Enrolment</button>
+          </form>
+        </div>
+        <div class="card">
+          <h3>Admin Enrolment Queue</h3>
+          <table><thead><tr><th>Child</th><th>Class</th><th>Parent</th><th>Status</th><th>Action</th></tr></thead><tbody id="enrolmentTableBody"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-fees" class="view">
+      <div class="grid-2">
+        <div class="card">
+          <h3>Fee Structure & Ecobank Payment Portal</h3>
+          <p style="font-size:0.84rem;margin-bottom:0.75rem;">Fees: $270/term | Reg: $80 | Desk: $20 | Textbook Levy: $5/term | Report Book: $7 | Transport: Monthly</p>
+          <form onsubmit="logPayment(event)">
+            <div class="form-group"><label>Student Name</label><input id="payStudent" required placeholder="Enter student full name" /></div>
+            <div class="form-group">
+              <label>Payment Purpose</label>
+              <select id="payPurpose" onchange="updateSuggestedAmount()">
+                <option value="School Fees ($270 + $5 Textbook Levy)">School Fees & Textbook Levy ($275)</option>
+                <option value="New Student Package ($382)">New Student Full Package — Fees, Reg, Desk, Book ($382)</option>
+                <option value="Uniform Purchase">Uniform Purchase (Select/Enter Amount)</option>
+                <option value="Wednesday Adventist Uniform ($35)">Wednesday Adventist Uniform ($35)</option>
+                <option value="Monthly Transport">Monthly School Transport</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Amount Paid (USD)</label><input id="payAmount" type="number" value="275" required /></div>
+            <div class="form-group"><label>Ecobank Receipt # / Reference</label><input id="payRef" required placeholder="e.g. ECO-984312" /></div>
+            <div class="form-group"><label>Attach Receipt Photo or Screenshot</label><input id="payProof" type="file" accept="image/*,.pdf" /></div>
+            <button type="submit" class="btn">Log Payment & Proof</button>
+          </form>
+          <table><thead><tr><th>Student</th><th>Purpose</th><th>Amount</th><th>Receipt / Proof</th><th>Status</th></tr></thead><tbody id="paymentTableBody"></tbody></table>
+        </div>
+        <div class="card">
+          <h3>Uniform Price List</h3>
+          <table>
+            <tr><td>Summer Boys (Short & Shirt) / Girls (Pinafore & Shirt)</td><td>$14 / $15</td></tr>
+            <tr><td>Summer Jersey / Winter Uniform / Winter Jersey</td><td>$15 / $18 / $25</td></tr>
+            <tr><td>Blazer / Tracksuit / Sports Attire</td><td>$25-$35 / $20 / $12</td></tr>
+            <tr><td>Worksuit / Anorak / Wednesday Adventist Uniform</td><td>$25 / $27 / $35</td></tr>
+            <tr><td>Sunhat / Woolen Hat / Scarf / Gloves / Tie</td><td>$5 each (Tie $3)</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+        <section id="view-parent" class="view">
+      <div class="grid-2">
+        <div class="card">
+          <h3>Parent & Student Portal Login (Results, Performance & Attendance)</h3>
+          <p style="font-size:0.85rem;color:#64748b;margin-bottom:0.75rem;">Enter a <strong>Parent Reference Code</strong> (e.g. <code>PAR-1001</code>) for full attendance, behavior, performance & exam results, or a <strong>Student Access Code</strong> (e.g. <code>STU-2001</code>) for exam results.</p>
+          <form onsubmit="lookupStudentByCode(event)" style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+            <input id="portalAccessInput" required placeholder="Enter PAR-XXXX or STU-XXXX" />
+            <button type="submit" class="btn">View Report</button>
+          </form>
+          <div id="codeLookupResult"></div>
+        </div>
+
+        <div class="card">
+          <h3>Parent – Teacher Interaction</h3>
+          <div id="chatBox" style="background:#f8fafc;padding:0.75rem;height:210px;overflow-y:auto;border:1px solid #e2e8f0;margin-bottom:0.75rem;"></div>
+          <form onsubmit="sendMsg(event)" style="display:flex;gap:0.5rem;">
+            <input id="parentMsgInput" required placeholder="Type message to school..." />
+            <button type="submit" class="btn">Send</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-register" class="view">
+      <div class="card" style="margin-bottom:1.25rem;">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:0.5rem;">
+          <h3>Weekly Student Attendance Register & Records</h3>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <input type="text" id="registerTeacherName" placeholder="Teacher Name (e.g. Miss P. Ndlovu)" style="width:220px;" /><label style="margin:0;">Week Starting:</label>
+            <input type="date" id="registerWeekDate" style="width:auto;" />
+            <button class="btn btn-gold btn-sm" onclick="submitWeeklyRegister()">Submit Weekly Log</button>
+          </div>
+        </div>
+        <p style="font-size:0.84rem;color:#64748b;margin:0.4rem 0 0.75rem;">Click any <strong>student's name</strong> to open their full attendance history, add performance/behavior notes, enter exam results, or generate Parent/Student codes.</p>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Student Name (Click for History)</th>
+                <th>Class</th>
+                <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th>
+                <th>Parent Ref</th>
+                <th>Student Code</th>
+              </tr>
+            </thead>
+            <tbody id="studentRegisterBody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <input id="quickStudentName" placeholder="Add existing student full name..." style="max-width:250px;" />
+          <select id="quickStudentClass" style="max-width:160px;"><option>ECD A</option><option>ECD B</option><option>Primary School</option></select>
+          <button class="btn btn-sm" onclick="addExistingStudent()">+ Add Student & Generate Codes</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Staff Attendance Register</h3>
+        <table><thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Action</th></tr></thead><tbody id="staffRegisterBody"></tbody></table>
+      </div>
+    </section>
+  </main>
+
+  <!-- STUDENT HISTORY, PERFORMANCE, EXAMS & CODE MODAL -->
+  <div id="studentModal" style="display:none;position:fixed;inset:0;background:rgba(15,41,74,0.78);z-index:1000;align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:#fff;border-radius:10px;max-width:720px;width:100%;max-height:88vh;overflow-y:auto;padding:1.35rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #f4f7fb;padding-bottom:0.6rem;margin-bottom:0.85rem;">
+        <h3 id="stuModalTitle" style="color:#0f294a;margin:0;">Student Record</h3>
+        <button class="btn btn-sm" style="background:#dc2626;" onclick="document.getElementById('studentModal').style.display='none'">Close</button>
+      </div>
+      <div id="stuModalBody"></div>
+    </div>
+  </div>
+
+  <!-- RECEIPT PREVIEW MODAL -->
+  <div id="receiptModal" style="display:none;position:fixed;inset:0;background:rgba(15,41,74,0.75);z-index:999;align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:#fff;border-radius:10px;max-width:540px;width:100%;padding:1.25rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+        <h3 id="receiptModalTitle" style="color:#0f294a;margin:0;">Receipt Preview</h3>
+        <button class="btn btn-sm" style="background:#dc2626;" onclick="document.getElementById('receiptModal').style.display='none'">Close</button>
+      </div>
+      <div id="receiptModalBody" style="text-align:center;"></div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
+
+
+
